@@ -124,6 +124,28 @@
             font-size: 14px;
         }
 
+        .delete-button {
+            display: inline-block;
+            visibility: hidden;
+            background: none;
+            border: none;
+            color: #ff4444;
+            cursor: pointer;
+            padding: 0px 8px;
+            font-size: 12px;
+            transition: color 0.2s ease;
+            width: 24px;
+            text-align: center;
+        }
+
+        .delete-button.visible {
+            visibility: visible;
+        }
+
+        .delete-button:hover {
+            color: #ff0000;
+        }
+
         .priority-bookmark {
             font-weight: bold;
         }
@@ -141,6 +163,33 @@
             font-size: 1.1rem;
             margin: 50px 20px;
         }
+
+        .floating-menu {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #2d2d2d;
+            border: 1px solid #404040;
+            border-radius: 8px;
+            padding: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .edit-checkbox {
+            width: 16px;
+            height: 16px;
+            cursor: pointer;
+        }
+
+        .edit-label {
+            color: #e0e0e0;
+            font-size: 14px;
+            cursor: pointer;
+        }
     </style>
 </head>
 <body>
@@ -154,6 +203,11 @@
 
     <div id="groupedBookmarksContainer" class="container">
         <div id="groupedBookmarksList" class="bookmarks-explorer" style="display: none;"></div>
+    </div>
+
+    <div class="floating-menu">
+        <input type="checkbox" id="editCheckbox" class="edit-checkbox">
+        <label for="editCheckbox" class="edit-label">Edit</label>
     </div>
 
     <script src="newtab.js"></script>

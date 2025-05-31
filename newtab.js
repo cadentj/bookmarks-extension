@@ -136,9 +136,39 @@ function renderFlatBookmarks(bookmarks) {
             titleSpan.textContent = bookmark.title;
         }
         
+        const deleteButton = document.createElement('button');
+        deleteButton.className = 'delete-button';
+        deleteButton.textContent = '🗑️';
+        deleteButton.title = 'Delete bookmark';
+        deleteButton.onclick = (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            if (confirm('Are you sure you want to delete this bookmark?')) {
+                chrome.bookmarks.search({ url: bookmark.url }, (results) => {
+                    if (results.length > 0) {
+                        chrome.bookmarks.remove(results[0].id, () => {
+                            // Remove the bookmark from the UI
+                            bookmarkItem.remove();
+                            // Update the bookmarks list
+                            const index = flatBookmarks.findIndex(b => b.url === bookmark.url);
+                            if (index !== -1) {
+                                flatBookmarks.splice(index, 1);
+                            }
+                            // Show no bookmarks message if list is empty
+                            if (flatBookmarks.length === 0) {
+                                container.style.display = 'none';
+                                noBookmarksMessage.style.display = 'block';
+                            }
+                        });
+                    }
+                });
+            }
+        };
+        
         link.appendChild(favicon);
         link.appendChild(titleSpan);
         bookmarkItem.appendChild(link);
+        bookmarkItem.appendChild(deleteButton);
         container.appendChild(bookmarkItem);
     });
     
@@ -215,9 +245,42 @@ function renderGroupedBookmarks(bookmarks) {
                         titleSpan.textContent = bookmark.title;
                     }
                     
+                    const deleteButton = document.createElement('button');
+                    deleteButton.className = 'delete-button';
+                    deleteButton.textContent = '🗑️';
+                    deleteButton.title = 'Delete bookmark';
+                    deleteButton.onclick = (e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        if (confirm('Are you sure you want to delete this bookmark?')) {
+                            chrome.bookmarks.search({ url: bookmark.url }, (results) => {
+                                if (results.length > 0) {
+                                    chrome.bookmarks.remove(results[0].id, () => {
+                                        // Remove the bookmark from the UI
+                                        bookmarkItem.remove();
+                                        // Update the bookmarks list
+                                        const folderIndex = allBookmarks.findIndex(f => f.title === item.title);
+                                        if (folderIndex !== -1) {
+                                            const bookmarkIndex = allBookmarks[folderIndex].bookmarks.findIndex(b => b.url === bookmark.url);
+                                            if (bookmarkIndex !== -1) {
+                                                allBookmarks[folderIndex].bookmarks.splice(bookmarkIndex, 1);
+                                                // If folder is empty, remove it
+                                                if (allBookmarks[folderIndex].bookmarks.length === 0) {
+                                                    allBookmarks.splice(folderIndex, 1);
+                                                    folderHeader.remove();
+                                                }
+                                            }
+                                        }
+                                    });
+                                }
+                            });
+                        }
+                    };
+                    
                     link.appendChild(favicon);
                     link.appendChild(titleSpan);
                     bookmarkItem.appendChild(link);
+                    bookmarkItem.appendChild(deleteButton);
                     container.appendChild(bookmarkItem);
                 }
             });
@@ -229,6 +292,15 @@ function renderGroupedBookmarks(bookmarks) {
 
 // Load bookmarks when page loads
 document.addEventListener('DOMContentLoaded', function() {
+    // Set up edit mode toggle
+    const editCheckbox = document.getElementById('editCheckbox');
+    editCheckbox.addEventListener('change', () => {
+        const deleteButtons = document.querySelectorAll('.delete-button');
+        deleteButtons.forEach(button => {
+            button.classList.toggle('visible', editCheckbox.checked);
+        });
+    });
+
     chrome.bookmarks.getTree(function(bookmarkTreeNodes) {
         const { flatList, groupedBookmarks } = getAllBookmarks(bookmarkTreeNodes);
         flatBookmarks = flatList;
